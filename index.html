@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ArchAgent-R</title>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        window.mermaid = mermaid;
+        mermaid.initialize({ startOnLoad: false });
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 350px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+
+        .mermaid {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>ArchAgent-R AI System</h1>
+
+    <input type="text" id="inputText" placeholder="Enter system idea">
+
+    <button onclick="sendRequest()">
+        Generate
+    </button>
+
+    <h2>Result:</h2>
+
+    <div id="output"></div>
+
+    <script>
+        function cleanMermaidCode(text) {
+            return text
+                .replace(/```mermaid/g, "")
+                .replace(/```/g, "")
+                .trim();
+        }
+
+        async function sendRequest() {
+            const input = document.getElementById("inputText").value;
+
+            document.getElementById("output").innerHTML = `
+                <div class="card">
+                    <h2>⏳ Generating architecture...</h2>
+                    <p>Please wait while AI agents process your request.</p>
+                </div>
+            `;
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/process?input_text=${encodeURIComponent(input)}`
+            );
+
+            const data = await response.json();
+            const diagramCode = cleanMermaidCode(data.diagram);
+
+            document.getElementById("output").innerHTML = `
+                <div class="card">
+                    <h2>📌 Architecture Plan</h2>
+                    <pre>${data.plan}</pre>
+                </div>
+
+                <div class="card">
+                    <h2>🧰 Technology Stack Recommendation</h2>
+                    <pre>${data.tech_stack}</pre>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Architecture Diagram</h2>
+                    <div class="mermaid">
+                        ${diagramCode}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>⚙️ Implementation Steps</h2>
+                    <pre>${data.execution}</pre>
+                </div>
+
+                <div class="card">
+                    <h2>🧠 Architecture Review</h2>
+                    <pre>${data.review}</pre>
+                </div>
+            `;
+
+            await window.mermaid.run({
+                querySelector: ".mermaid"
+            });
+        }
+    </script>
+
+</body>
+</html>
