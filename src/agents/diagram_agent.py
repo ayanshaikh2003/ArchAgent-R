@@ -1,20 +1,26 @@
 from src.services.ai_service import ask_ai
 
-def generate_diagram(requirement):
+def generate_diagram(input_text):
 
     prompt = f"""
-    Generate a Mermaid.js system architecture diagram
-    for this software system:
+Generate ONLY a valid Mermaid diagram.
 
-    {requirement}
+Rules:
+- Return ONLY Mermaid code
+- No explanation
+- No markdown
+- No ```mermaid
+- Start directly with graph LR
+- Keep syntax simple
 
-    Return ONLY Mermaid code.
+System:
+{input_text}
 
-    Example:
-    graph TD
-    User --> Frontend
-    Frontend --> Backend
-    Backend --> Database
-    """
+Example:
+graph LR
+A[User] --> B[Frontend]
+B --> C[Backend]
+C --> D[Database]
+"""
 
     return ask_ai(prompt)
