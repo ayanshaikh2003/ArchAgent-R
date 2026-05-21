@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,7 +9,6 @@ from src.agents.diagram_agent import generate_diagram
 
 app = FastAPI()
 
-# Enable frontend connection
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,32 +17,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Home route
 @app.get("/")
 def home():
     return {"message": "ArchAgent-R API is running"}
 
-# Main AI processing route
 @app.get("/process")
-def process(input_text: str):
+def process(input_text: str, modification: str = ""):
+    full_prompt = input_text
 
-    # Agent 1 → Planner
-    plan = planner(input_text)
+    if modification:
+        full_prompt += f". Modification request: {modification}"
 
-    # Agent 2 → Tech Stack Recommendation
-    stack = tech_stack(input_text)
-
-    # Agent 3 → Diagram Generator
-    diagram = generate_diagram(input_text)
-
-    # Agent 4 → Execution Steps
+    plan = planner(full_prompt)
+    stack = tech_stack(full_prompt)
+    diagram = generate_diagram(full_prompt)
     result = executor(plan)
-
-    # Agent 5 → Review / Critic
     review = critic(result)
 
     return {
         "input": input_text,
+        "modification": modification,
         "plan": plan,
         "tech_stack": stack,
         "diagram": diagram,
