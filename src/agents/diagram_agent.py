@@ -2,69 +2,62 @@ from src.services.ai_service import ask_ai
 
 def generate_diagram(input_text):
     prompt = f"""
-You are a senior software architect.
+Generate ONLY valid Mermaid.js code for a software architecture diagram.
 
-Generate a DETAILED Mermaid.js architecture diagram for the following software system:
-
-System requirement:
+System:
 {input_text}
 
-Your diagram must include:
-- User / Client
-- Web or Mobile Frontend
-- Load Balancer
-- API Gateway
-- Authentication Service
-- Main Business Services
-- Database
-- Cache layer such as Redis
-- External services if relevant
-- Cloud / Deployment layer if relevant
+Strict rules:
+- Start with exactly: graph TD
+- Do not use markdown
+- Do not use ```mermaid
+- Do not use explanations
+- Do not use slash symbols /
+- Do not use parentheses ()
+- Do not use colons :
+- Keep node labels simple
+- Use only letters, numbers, and spaces inside brackets
 
-Rules:
-- Return ONLY valid Mermaid code
-- Do NOT include explanation
-- Do NOT include markdown fences
-- Do NOT write ```mermaid
-- Start directly with: graph TD
-- Use simple node names
-- Avoid special symbols like (), /, &, :
-- Use square brackets only for node labels
-- Keep the diagram readable and professional
+Return a diagram similar to:
 
-Example format:
 graph TD
-A[User] --> B[Frontend]
+A[User] --> B[Web Frontend]
 B --> C[Load Balancer]
 C --> D[API Gateway]
-D --> E[Auth Service]
+D --> E[Authentication Service]
 D --> F[Product Service]
 D --> G[Order Service]
 F --> H[Redis Cache]
 F --> I[Database]
+G --> J[Payment Service]
+J --> K[External Payment Gateway]
 G --> I
-G --> J[Payment Gateway]
 """
 
     diagram = ask_ai(prompt)
 
-    # Clean common unwanted formatting from AI output
     diagram = diagram.replace("```mermaid", "")
     diagram = diagram.replace("```", "")
+    diagram = diagram.replace("/", " ")
+    diagram = diagram.replace(":", " ")
+    diagram = diagram.replace("(", "")
+    diagram = diagram.replace(")", "")
     diagram = diagram.strip()
 
-    # Safety fallback if AI does not return Mermaid
     if not diagram.startswith("graph"):
-        diagram = f"""
+        diagram = """
 graph TD
-A[User] --> B[Frontend]
+A[User] --> B[Web Frontend]
 B --> C[Load Balancer]
 C --> D[API Gateway]
 D --> E[Authentication Service]
-D --> F[Core Business Service]
-F --> G[Redis Cache]
-F --> H[Database]
-F --> I[External Service]
+D --> F[Product Service]
+D --> G[Order Service]
+F --> H[Redis Cache]
+F --> I[Database]
+G --> J[Payment Service]
+J --> K[External Payment Gateway]
+G --> I
 """
 
     return diagram

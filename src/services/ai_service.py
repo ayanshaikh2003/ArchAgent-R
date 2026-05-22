@@ -4,6 +4,7 @@ import requests
 API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 def ask_ai(prompt):
+
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
@@ -15,15 +16,26 @@ def ask_ai(prompt):
 
     data = {
         "model": "openai/gpt-3.5-turbo",
+
+        "max_tokens": 150,
+
         "messages": [
-            {"role": "user", "content": prompt}
+            {
+                "role": "user",
+                "content": prompt
+            }
         ]
     }
 
-    response = requests.post(url, headers=headers, json=data)
+    response = requests.post(
+        url,
+        headers=headers,
+        json=data
+    )
+
     result = response.json()
 
     if "choices" in result:
         return result["choices"][0]["message"]["content"]
-    else:
-        return f"ERROR: {result}"
+
+    return f"ERROR: {result}"

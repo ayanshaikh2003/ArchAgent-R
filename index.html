@@ -10,9 +10,7 @@
     </script>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -30,11 +28,6 @@
             border-right: 1px solid #1e293b;
         }
 
-        .sidebar h2 {
-            font-size: 20px;
-            margin-bottom: 20px;
-        }
-
         .history-item {
             background: #1e293b;
             padding: 12px;
@@ -43,32 +36,19 @@
             cursor: pointer;
         }
 
-        .history-item:hover {
-            background: #334155;
-        }
+        .history-item:hover { background: #334155; }
 
-        .history-title {
-            font-weight: bold;
-            font-size: 14px;
-        }
+        .history-title { font-weight: bold; font-size: 14px; }
+        .history-date { font-size: 12px; color: #94a3b8; margin-top: 5px; }
 
-        .history-date {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 5px;
-        }
-
-        .main {
-            flex: 1;
-            padding: 30px;
-        }
+        .main { flex: 1; padding: 30px; }
 
         .topbar {
             display: flex;
             justify-content: flex-end;
             align-items: center;
             gap: 12px;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .auth-btn {
@@ -80,9 +60,7 @@
             cursor: pointer;
         }
 
-        .auth-btn.secondary {
-            background: #334155;
-        }
+        .auth-btn.secondary { background: #334155; }
 
         .avatar {
             width: 42px;
@@ -101,10 +79,7 @@
             text-align: center;
         }
 
-        .welcome h1 {
-            font-size: 42px;
-            margin-bottom: 12px;
-        }
+        .welcome h1 { font-size: 42px; margin-bottom: 12px; }
 
         .welcome p {
             color: #cbd5e1;
@@ -138,11 +113,10 @@
             color: white;
             font-size: 17px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
-        .generate-btn:hover {
-            background: #2563eb;
-        }
+        .download-btn { background: #22c55e; }
 
         .result-container {
             max-width: 1000px;
@@ -155,10 +129,6 @@
             margin-top: 20px;
             border-radius: 14px;
             border: 1px solid #334155;
-        }
-
-        .card h2 {
-            margin-top: 0;
         }
 
         pre {
@@ -175,132 +145,286 @@
             border-radius: 12px;
             overflow-x: auto;
         }
-
-        .small-note {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-top: 10px;
-        }
     </style>
 </head>
 
 <body>
 
-    <aside class="sidebar">
-        <h2>Project History</h2>
+<aside class="sidebar">
+    <h2>Project History</h2>
+    <div id="historyList">
+        <p style="color:#94a3b8;">Login to view your history.</p>
+    </div>
+</aside>
 
-        <div class="history-item">
-            <div class="history-title">Online Shopping System</div>
-            <div class="history-date">Last searched: Today</div>
-        </div>
+<main class="main">
 
-        <div class="history-item">
-            <div class="history-title">Hospital Management System</div>
-            <div class="history-date">Last searched: Yesterday</div>
-        </div>
+    <div class="topbar">
+        <button id="loginBtn" class="auth-btn secondary" onclick="login()">Login</button>
+        <button id="registerBtn" class="auth-btn" onclick="register()">Register</button>
+        <button id="logoutBtn" class="auth-btn secondary" onclick="logout()" style="display:none;">Logout</button>
+        <div id="avatar" class="avatar">A</div>
+    </div>
 
-        <div class="history-item">
-            <div class="history-title">Banking System</div>
-            <div class="history-date">Last searched: Demo</div>
-        </div>
-    </aside>
+    <section class="welcome">
+        <h1>Welcome to ArchAgent-R</h1>
+        <p>
+            Generate architecture plans, technology stack recommendations,
+            diagrams, implementation steps, and AI-powered reviews.
+        </p>
+    </section>
 
-    <main class="main">
+    <section class="input-card">
+        <input type="text" id="inputText" placeholder="Type your software idea here">
+        <input type="text" id="modifyText" placeholder="Optional modification request">
 
-        <div class="topbar">
-            <button class="auth-btn secondary">Login</button>
-            <button class="auth-btn">Register</button>
-            <div class="avatar">A</div>
-        </div>
+        <button class="generate-btn" onclick="sendRequest(true)">Generate Architecture</button>
+        <button class="generate-btn download-btn" onclick="downloadReport()">Download Report</button>
+    </section>
 
-        <section class="welcome">
-            <h1>Welcome to ArchAgent-R</h1>
-            <p>
-                Generate software architecture plans, technology stack recommendations,
-                visual diagrams, implementation steps, and AI-based reviews from your project idea.
-            </p>
-        </section>
+    <section class="result-container">
+        <div id="output"></div>
+    </section>
 
-        <section class="input-card">
-            <input type="text" id="inputText" placeholder="Type your software idea here, e.g. Online shopping system">
+</main>
 
-            <input type="text" id="modifyText" placeholder="Optional modification, e.g. Use microservices and Redis caching">
+<script>
+    const API_URL = "http://127.0.0.1:8000";
+    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-            <button class="generate-btn" onclick="sendRequest()">
-                Generate Architecture
-            </button>
+    function updateAuthUI() {
+        const avatar = document.getElementById("avatar");
 
-            <div class="small-note">
-                Tip: Try ideas like hospital system, banking system, food delivery app, or learning management system.
-            </div>
-        </section>
+        if (currentUser) {
+            document.getElementById("loginBtn").style.display = "none";
+            document.getElementById("registerBtn").style.display = "none";
+            document.getElementById("logoutBtn").style.display = "inline-block";
+            avatar.style.display = "flex";
+            avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            loadHistory();
+        } else {
+            document.getElementById("loginBtn").style.display = "inline-block";
+            document.getElementById("registerBtn").style.display = "inline-block";
+            document.getElementById("logoutBtn").style.display = "none";
+            avatar.style.display = "none";
+            document.getElementById("historyList").innerHTML =
+                `<p style="color:#94a3b8;">Login to view your history.</p>`;
+        }
+    }
 
-        <section class="result-container">
-            <div id="output"></div>
-        </section>
+    async function register() {
+        const name = prompt("Enter your name:");
+        const email = prompt("Enter your email:");
+        const password = prompt("Enter your password:");
 
-    </main>
+        if (!name || !email || !password) return;
 
-    <script>
-        function cleanMermaidCode(text) {
-            return text
-                .replace(/```mermaid/g, "")
-                .replace(/```/g, "")
-                .trim();
+        const response = await fetch(`${API_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+        alert(data.message);
+    }
+
+    async function login() {
+        const email = prompt("Enter your email:");
+        const password = prompt("Enter your password:");
+
+        if (!email || !password) return;
+
+        const response = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            updateAuthUI();
+            alert("Login successful");
+        } else {
+            alert(data.message);
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem("currentUser");
+        document.getElementById("output").innerHTML = "";
+        updateAuthUI();
+    }
+
+    async function loadHistory() {
+        if (!currentUser) return;
+
+        const response = await fetch(`${API_URL}/history?user_id=${currentUser.id}`);
+        const data = await response.json();
+
+        const historyList = document.getElementById("historyList");
+
+        if (!data.history.length) {
+            historyList.innerHTML = `<p style="color:#94a3b8;">No history yet.</p>`;
+            return;
         }
 
-        async function sendRequest() {
-            const input = document.getElementById("inputText").value;
-            const modification = document.getElementById("modifyText").value;
+        historyList.innerHTML = "";
 
-            document.getElementById("output").innerHTML = `
-                <div class="card">
-                    <h2>⏳ Generating architecture...</h2>
-                    <p>Please wait while ArchAgent-R agents analyze your requirement.</p>
-                </div>
+        data.history.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "history-item";
+
+            div.innerHTML = `
+                <div class="history-title">${item.input_text}</div>
+                <div class="history-date">${item.created_at}</div>
+                <div class="history-date">${item.modification || ""}</div>
             `;
 
+            div.onclick = function () {
+                document.getElementById("inputText").value = item.input_text;
+                document.getElementById("modifyText").value = item.modification || "";
+                sendRequest(false);
+            };
+
+            historyList.appendChild(div);
+        });
+    }
+
+    function cleanMermaidCode(text) {
+        return text
+            .replace(/```mermaid/g, "")
+            .replace(/```/g, "")
+            .trim();
+    }
+
+    function addTextCard(title, text) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const h2 = document.createElement("h2");
+        h2.textContent = title;
+
+        const pre = document.createElement("pre");
+        pre.textContent = text || "No data returned.";
+
+        card.appendChild(h2);
+        card.appendChild(pre);
+
+        document.getElementById("output").appendChild(card);
+    }
+
+    async function addDiagramCard(diagramCode) {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const h2 = document.createElement("h2");
+        h2.textContent = "📊 Architecture Diagram";
+
+        const diagramDiv = document.createElement("div");
+        diagramDiv.className = "mermaid";
+        diagramDiv.textContent = cleanMermaidCode(diagramCode);
+
+        card.appendChild(h2);
+        card.appendChild(diagramDiv);
+
+        document.getElementById("output").appendChild(card);
+
+        try {
+            await window.mermaid.run({ nodes: [diagramDiv] });
+        } catch (error) {
+            diagramDiv.textContent = "Diagram rendering failed. Please try again.";
+            console.log("Mermaid error:", error);
+        }
+    }
+
+    async function saveCurrentHistory(input, modification) {
+        if (!currentUser) return;
+
+        await fetch(`${API_URL}/save-history`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user_id: currentUser.id,
+                input_text: input,
+                modification: modification
+            })
+        });
+
+        await loadHistory();
+    }
+
+    async function sendRequest(saveToHistory) {
+        const input = document.getElementById("inputText").value;
+        const modification = document.getElementById("modifyText").value;
+
+        if (!input.trim()) {
+            alert("Please enter a system idea.");
+            return;
+        }
+
+        const outputDiv = document.getElementById("output");
+
+        outputDiv.innerHTML = `
+            <div class="card">
+                <h2>⏳ Generating architecture...</h2>
+                <p>Please wait while ArchAgent-R agents process your request.</p>
+            </div>
+        `;
+
+        try {
             const response = await fetch(
-                `http://127.0.0.1:8000/process?input_text=${encodeURIComponent(input)}&modification=${encodeURIComponent(modification)}`
+                `${API_URL}/process?input_text=${encodeURIComponent(input)}&modification=${encodeURIComponent(modification)}`
             );
 
             const data = await response.json();
-            const diagramCode = cleanMermaidCode(data.diagram);
 
-            document.getElementById("output").innerHTML = `
-                <div class="card">
-                    <h2>📌 Architecture Plan</h2>
-                    <pre>${data.plan}</pre>
-                </div>
+            outputDiv.innerHTML = "";
 
-                <div class="card">
-                    <h2>🧰 Technology Stack Recommendation</h2>
-                    <pre>${data.tech_stack}</pre>
-                </div>
+            addTextCard("📌 Architecture Plan", data.plan);
+            addTextCard("🧰 Technology Stack Recommendation", data.tech_stack);
+            await addDiagramCard(data.diagram);
+            addTextCard("⚙️ Implementation Steps", data.execution);
+            addTextCard("🧠 Architecture Review", data.review);
 
-                <div class="card">
-                    <h2>📊 Architecture Diagram</h2>
-                    <div class="mermaid">
-                        ${diagramCode}
-                    </div>
-                </div>
+            outputDiv.scrollIntoView({ behavior: "smooth" });
 
-                <div class="card">
-                    <h2>⚙️ Implementation Steps</h2>
-                    <pre>${data.execution}</pre>
-                </div>
+            if (saveToHistory && currentUser) {
+                await saveCurrentHistory(input, modification);
+            }
 
+        } catch (error) {
+            outputDiv.innerHTML = `
                 <div class="card">
-                    <h2>🧠 Architecture Review</h2>
-                    <pre>${data.review}</pre>
+                    <h2>❌ Error</h2>
+                    <p>${error}</p>
                 </div>
             `;
-
-            await window.mermaid.run({
-                querySelector: ".mermaid"
-            });
         }
-    </script>
+    }
+
+    function downloadReport() {
+        const output = document.getElementById("output").innerText;
+
+        if (!output.trim()) {
+            alert("Please generate an architecture report first.");
+            return;
+        }
+
+        const blob = new Blob([output], { type: "text/plain" });
+        const link = document.createElement("a");
+
+        link.href = URL.createObjectURL(blob);
+        link.download = "ArchAgent-R_Report.txt";
+        link.click();
+    }
+
+    updateAuthUI();
+</script>
 
 </body>
 </html>
