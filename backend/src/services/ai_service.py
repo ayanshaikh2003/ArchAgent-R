@@ -17,7 +17,7 @@ def ask_ai(prompt):
     data = {
         "model": "openai/gpt-3.5-turbo",
 
-        "max_tokens": 150,
+        "max_tokens": 800,
 
         "messages": [
             {
